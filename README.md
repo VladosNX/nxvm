@@ -29,6 +29,6 @@ Installation on Arch Linux and systems based on it
 
 Open your terminal and execute command:
 
-> curl -sSL https://raw.githubusercontent.com/VladosNX/nxvm/refs/heads/main/nxvm.py | sudo sh
+> curl -sSL https://raw.githubusercontent.com/VladosNX/nxvm/refs/heads/main/install.sh | sudo sh
 
 This command will download and install NXVM from source without buildings.
