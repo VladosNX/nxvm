@@ -21,9 +21,15 @@ Now, NXVM has this dependencies:
 - `qemu-system-x86`
 - `qt5-base`
 
-Installation on Arch Linux and systems based on it
+
+Installation on Arch Linux and systems based on it:
 
 > sudo pacman -S qemu-base qemu-system-x86 qt5-base
+
+
+Installation on Debian-based systems:
+
+> sudo apt install qtbase5-dev qemu qemu-system-x86
 
 ## Installation
 
