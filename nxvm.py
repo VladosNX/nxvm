@@ -9,6 +9,8 @@ import yaml
 import subprocess
 import threading
 
+version = '0.2'
+
 class FontNames():
     def __init__(self):
         self.standard = 'Montserrat'
@@ -87,11 +89,16 @@ class ContentWidget(QtWidgets.QWidget):
         self.settingsButton.adjustSize()
         self.settingsButton.move(int((self.content.width() - self.openVmButton.width()) / 2) + 100, 300)
         self.settingsButton.setStyleSheet("color: white;")
+        self.settingsButton.clicked.connect(self.openSettings)
         
     def newVm(self):
         self.newVmWindow = NewVmWindow(self.app, self.parent)
         self.newVmWindow.show()
         self.newVmWindow.raise_()
+
+    def openSettings(self):
+        self.settingsWindow = SettingsWindow(self.app, self.parent)
+        self.settingsWindow.show()
 
 class ShowVmWindow(QtWidgets.QMainWindow):
     def __init__(self, app, parent):
@@ -101,6 +108,7 @@ class ShowVmWindow(QtWidgets.QMainWindow):
         self.subprocess = None
         self.thread = None
         self.vncThread = None
+        self.vncProcess = None
         self.parent = parent
 
         self.content = QtWidgets.QWidget(parent)
@@ -213,7 +221,7 @@ class ShowVmWindow(QtWidgets.QMainWindow):
                 command.append('-boot')
                 command.append('d')
         print(command)
-        self.subprocess = subprocess.Popen(command)
+        self.subprocess = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         self.thread = threading.Thread(target=self.handleVm)
         self.thread.start()
         self.vncViewStart()
@@ -229,6 +237,19 @@ class ShowVmWindow(QtWidgets.QMainWindow):
         while True:
             code = self.subprocess.poll()
             if code:
+                if not code in [0, -9]:
+                    stderr = self.subprocess.stderr.read()
+                    msg = QtWidgets.QMessageBox()
+                    msg.setText("Failed to start VM, see details below:\n\n"
+                                f"Exit code: {code}\n"
+                                f"stderr output:\n{stderr}")
+                    time.sleep(0.1)
+                    if self.vncProcess and self.vncProcess.poll() == None:
+                        self.vncProcess.terminate()
+                    msg.setIcon(QtWidgets.QMessageBox.Critical)
+                    msg.setStyleSheet(f"background-color: {colors.bg}; color: white;")
+                    msg.exec_()
+
                 print(f"Process exited with code {code}")
                 self.stopButton.hide()
                 self.runButton.show()
@@ -248,7 +269,12 @@ class ShowVmWindow(QtWidgets.QMainWindow):
 
     def vncViewer(self):
         time.sleep(0.1)
-        os.system('vncviewer localhost:5900 MenuKey=Pause')
+        if self.parent.nxvmConfig['VNCVIEWER'] == 'tigervnc':
+            self.vncProcess = subprocess.Popen(['vncviewer', 'localhost:5900', 'MenuKey=Pause'],
+                                               stdout=subprocess.PIPE, text=True)
+        elif self.parent.nxvmConfig['VNCVIEWER'] == 'remmina':
+            self.vncProcess = subprocess.Popen(['remmina', 'vnc://localhost:5900'],
+                                               stdout=subprocess.PIPE, text=True)
 
     def openSettings(self):
         self.vmPath = os.path.join(os.getenv('HOME'), 'NXVMs', self.vmConfig["NAME"])
@@ -333,9 +359,7 @@ class VmSettingsWindow(QtWidgets.QMainWindow):
         self.vmHdaPathFileDialog.setText("Browse")
         self.vmHdaPathFileDialog.move(fileButtonStart, 50)
         self.vmHdaPathFileDialog.setStyleSheet("color: white;")
-        self.vmHdaPathFileDialog.clicked.connect(lambda: self.vmHdaPathInputbox.setText(
-            QtWidgets.QFileDialog.getOpenFileName(self, "HDA Path", "", "")[0]
-        ))
+        self.vmHdaPathFileDialog.clicked.connect(lambda: self.openFileSelect("HDA Path"))
 
         self.vmCdromPathInputbox = QtWidgets.QLineEdit(self.vmStorageWidget)
         self.vmCdromPathInputbox.setFixedSize(fileEditWidth, lineEditHeight)
@@ -353,9 +377,7 @@ class VmSettingsWindow(QtWidgets.QMainWindow):
         self.vmCdromPathFileDialog.setText("Browse")
         self.vmCdromPathFileDialog.move(fileButtonStart, 80)
         self.vmCdromPathFileDialog.setStyleSheet("color: white;")
-        self.vmCdromPathFileDialog.clicked.connect(lambda: self.vmCdromPathInputbox.setText(
-            QtWidgets.QFileDialog.getOpenFileName(self, "HDA Path", "", "")[0]
-        ))
+        self.vmCdromPathFileDialog.clicked.connect(lambda: self.openFileSelect("CDROM Path"))
 
         # Hardware block
         self.vmHardwareWidget = QtWidgets.QWidget()
@@ -427,6 +449,11 @@ class VmSettingsWindow(QtWidgets.QMainWindow):
         self.saveButton.adjustSize()
         self.saveButton.move(windowWidth - self.saveButton.width() - 50, windowHeight - 50)
         self.saveButton.clicked.connect(self.saveSettings)
+
+    def openFileSelect(self, title):
+        selecter = QtWidgets.QFileDialog()
+        selecter.setStyleSheet("color: white;")
+        return selecter.getOpenFileName(self, title)
 
     def changeBlock(self, index):
         self.stackedWidget.setCurrentIndex(index)
@@ -653,6 +680,90 @@ class NewVmWindow(QtWidgets.QMainWindow):
         # self.baseWindow.showVm.setVmConfig(config)
         self.close()
 
+class SettingsWindow(QtWidgets.QMainWindow):
+    def __init__(self, app, parent):
+        super().__init__()
+        self.app = app
+        self.parent = parent
+        screenSize = self.app.desktop().availableGeometry()
+        windowWidth = 1000
+        windowHeight = 500
+        self.setGeometry(int((screenSize.width() - windowWidth) / 2), int((screenSize.height() - windowHeight) / 2),
+                         windowWidth, windowHeight)
+        self.setStyleSheet(f"background-color: {colors.bg};")
+
+        with open(os.path.join(os.getenv('HOME'), 'NXVMs', 'config.yaml'), 'r') as file:
+            raw = file.read()
+        self.config = yaml.load(raw, yaml.Loader)
+
+        self.vncViewers = ['tigervnc', 'remmina']
+
+        self.titleBlock = QtWidgets.QWidget(self)
+        self.titleBlock.setFixedSize(windowWidth, 100)
+        self.titleBlock.move(0, 0)
+        self.titleBlock.setStyleSheet(f"background-color: {colors.block};")
+
+        self.settingsTitle = QtWidgets.QLabel(self.titleBlock)
+        self.settingsTitle.setText("Settings")
+        self.settingsTitle.setFont(QFont(fontNames.splash, 28))
+        self.settingsTitle.adjustSize()
+        self.settingsTitle.move(50, int((self.titleBlock.height() - self.settingsTitle.height()) / 2))
+        self.settingsTitle.setStyleSheet("color: white;")
+
+        # Widgets for stacked widget
+        lineEditWidth = 400
+        lineEditHeight = 25
+        lineEditStart = 250
+        fileEditWidth = 300
+        fileButtonStart = lineEditStart + fileEditWidth + 10
+        fileButtonWidth = 90
+        hintStart = 50
+
+        self.generalWidget = QtWidgets.QWidget()
+        self.vncViewerHint = QtWidgets.QLabel(self.generalWidget)
+        self.vncViewerHint.setText("VNC Viewer")
+        self.vncViewerHint.setFont(QFont(fontNames.standard, 14))
+        self.vncViewerHint.setStyleSheet("color: white;")
+        self.vncViewerHint.adjustSize()
+        self.vncViewerHint.move(hintStart, 50)
+        self.vncViewerCombobox = QtWidgets.QComboBox(self.generalWidget)
+        self.vncViewerCombobox.setFixedSize(lineEditWidth, lineEditHeight)
+        self.vncViewerCombobox.move(lineEditStart, 50)
+        self.vncViewerCombobox.addItems(['Tiger VNC', 'Remmina'])
+        self.vncViewerCombobox.setCurrentIndex(self.vncViewers.index(self.config['VNCVIEWER']))
+        self.vncViewerCombobox.setStyleSheet("color: white;")
+
+        self.leftMenu = QtWidgets.QListWidget(self)
+        self.leftMenu.setFixedSize(180, windowHeight - self.titleBlock.height() - 20)
+        self.leftMenu.move(10, self.titleBlock.height() + 10)
+        self.leftMenu.setStyleSheet(f"background-color: {colors.block}; color: white;")
+        self.leftMenu.addItems(['General'])
+        self.leftMenu.currentRowChanged.connect(self.changeBlock)
+
+        self.stackedWidget = QtWidgets.QStackedWidget(self)
+        self.stackedWidget.setFixedSize(windowWidth - self.leftMenu.width() - 30,
+                                        windowHeight - self.titleBlock.height() - 70)
+        self.stackedWidget.move(self.leftMenu.width() + 20, self.titleBlock.height() + 10)
+        self.stackedWidget.addWidget(self.generalWidget)
+
+        self.saveButton = QtWidgets.QPushButton(self)
+        self.saveButton.setText("Save")
+        self.saveButton.setStyleSheet("color: white;")
+        self.saveButton.adjustSize()
+        self.saveButton.move(windowWidth - self.saveButton.width() - 50, windowHeight - 50)
+        self.saveButton.clicked.connect(self.saveSettings)
+
+    def changeBlock(self, index): pass
+
+    def saveSettings(self):
+        newConfig = {
+            'VNCVIEWER': self.vncViewers[self.vncViewerCombobox.currentIndex()]
+        }
+        with open(os.path.join(os.getenv('HOME'), 'NXVMs', 'config.yaml'), 'w') as file:
+            file.write(yaml.dump(newConfig))
+        self.parent.updateConfig()
+        self.close()
+
 class Window(QtWidgets.QMainWindow):
     def __init__(self, app):
         super().__init__()
@@ -663,6 +774,8 @@ class Window(QtWidgets.QMainWindow):
         self.ignoreRowChanged = False
         screenSize = app.desktop().availableGeometry()
         self.setGeometry(int((screenSize.width() - appWidth) / 2), int((screenSize.height() - appHeight) / 2), appWidth, appHeight)
+        self.nxvmConfig = None
+        self.updateConfig()
 
         self.leftMenu = QtWidgets.QWidget(self)
         self.leftMenuLayout = QtWidgets.QVBoxLayout(self.leftMenu)
@@ -678,7 +791,7 @@ class Window(QtWidgets.QMainWindow):
 
         self.menuTitle = QtWidgets.QLabel(self.leftMenu)
         self.menuTitle.setText("NXVM")
-        self.menuTitle.setFont(QFont(fontNames.standard, 32))
+        self.menuTitle.setFont(QFont(fontNames.splash, 32))
         self.menuTitle.adjustSize()
         self.menuTitle.move(int((self.leftMenu.width() - self.menuTitle.width()) / 2), 10)
         self.menuTitle.setStyleSheet("color: white;")
@@ -750,6 +863,11 @@ class Window(QtWidgets.QMainWindow):
             self.showVm.setVmConfig(self.vmsList[index - 1])
         else:
             self.setToMainMenu()
+
+    def updateConfig(self):
+        with open(os.path.join(os.getenv('HOME'), 'NXVMs', 'config.yaml'), 'r') as file:
+            raw = file.read()
+            self.nxvmConfig = yaml.load(raw, yaml.Loader)
 
 def showBetaWarning():
     msg = QtWidgets.QMessageBox()

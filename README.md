@@ -6,7 +6,9 @@ Please report bugs at [project page](https://github.com/vladosnx/nxvm).
 
 > *Just a VM manager for QEMU*
 
-![NXVM home page](screenshot.png)
+![NXVM Logo](NXVMLogo.png)
+
+![NXVM Home page](screenshot.png)
 
 ## What is NXVM
 
@@ -20,16 +22,15 @@ Now, NXVM has this dependencies:
 - `qemu-base`
 - `qemu-system-x86`
 - `qt5-base`
-
+- `python-pip`
 
 Installation on Arch Linux and systems based on it:
 
-> sudo pacman -S qemu-base qemu-system-x86 qt5-base
-
+> sudo pacman -S qemu-base qemu-system-x86 qt5-base python-pip
 
 Installation on Debian-based systems:
 
-> sudo apt install qtbase5-dev qemu qemu-system-x86
+> sudo apt install qtbase5-dev qemu qemu-system-x86 python-pip
 
 ## Installation
 

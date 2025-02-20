@@ -10,6 +10,14 @@ merror () {
   echo -e "\e[41mERROR\e[0m $1"
 }
 
+minfo "Installing Python dependencies"
+pip install PyQt5 pyyaml --break-system-packages
+if [[ "$?" != "0" ]]; then
+  merror "Error while installing Python dependencies"
+  merror "Try to install these manually with command \e[1mpip install PyQt5 PyYaml\e[0m"
+  merror "If it didn't help, try to download and modidy this script."
+  exit 1
+fi
 minfo "Changed directory to /tmp"
 cd /tmp
 minfo "Cloning NXMV repository"
@@ -21,6 +29,7 @@ fi
 mdone "Cloned NXVM repo without errors"
 cd nxvm
 cp nxvm.py /usr/bin/nxvm.py
+cp nxvm /usr/bin/nxvm
 chmod +x /usr/bin/nxvm.py
 mdone "Copied nxvm binary to /usr/bin and made it executable"
 cp nxvm.desktop /usr/share/applications/nxvm.desktop
