@@ -31,6 +31,7 @@ cd nxvm
 cp nxvm.py /usr/bin/nxvm.py
 cp nxvm /usr/bin/nxvm
 chmod +x /usr/bin/nxvm.py
+chmod +x /usr/bin/nxvm
 mdone "Copied nxvm binary to /usr/bin and made it executable"
 cp nxvm.desktop /usr/share/applications/nxvm.desktop
 mdone "Copied NXVM.desktop to /usr/share/applications"
