@@ -9,7 +9,7 @@ import yaml
 import subprocess
 import threading
 
-version = '0.2'
+version = '0.2.1'
 
 class FontNames():
     def __init__(self):
@@ -865,6 +865,10 @@ class Window(QtWidgets.QMainWindow):
             self.setToMainMenu()
 
     def updateConfig(self):
+        if not os.path.exists(os.path.join(os.getenv('HOME'), 'NXVMs', 'config.yaml')):
+            os.makedirs(os.path.join(os.getenv('HOME'), 'NXVMs'))
+            with open(os.path.join(os.getenv('HOME'), 'NXVMs', 'config.yaml'), 'w') as file:
+                file.write("VNCVIEWER: tigervnc")
         with open(os.path.join(os.getenv('HOME'), 'NXVMs', 'config.yaml'), 'r') as file:
             raw = file.read()
             self.nxvmConfig = yaml.load(raw, yaml.Loader)
