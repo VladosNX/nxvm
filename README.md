@@ -1,3 +1,5 @@
+[NXVM Site is online!](https://vladosnx.github.io/nxvm)
+
 **WARNING** You're reading a README.md file for beta-version v0.1.
 This version has a lot of bugs and program can be exited with errors for a many times.
 Please report bugs at [project page](https://github.com/vladosnx/nxvm).
