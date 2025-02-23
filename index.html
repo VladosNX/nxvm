@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NXVM: QEMU Manager</title>
+    <link href="style.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:ital@0;1&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+</head>
+<body>
+<!-- Верхнее меню -->
+<nav class="navbar">
+    <div class="container">
+        <div class="logo">NXVM</div>
+        <ul class="nav-links">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#downloads">Downloads</a></li>
+        </ul>
+    </div>
+</nav>
+
+<!-- Шапка сайта -->
+<header id="home" class="animate-on-scroll">
+    <div class="container">
+        <h1>NXVM</h1>
+        <p>Manage QEMU Emulator in Few Clicks</p>
+    </div>
+</header>
+
+<!-- Основной контент -->
+<main>
+    <!-- Секция "О проекте" -->
+    <section id="about" class="about">
+        <div class="container">
+            <h2 class="animate-on-scroll">About NXVM</h2>
+            <p class="animate-on-scroll">
+                NXVM is a powerful tool designed to simplify the management of QEMU virtual machines.
+                With an intuitive interface, you can create, configure, and manage virtual machines in just a few clicks.
+            </p>
+        </div>
+    </section>
+
+    <!-- Секция "Загрузки" -->
+    <section id="downloads" class="downloads">
+        <div class="container">
+            <h2 class="animate-on-scroll">Downloads</h2>
+            <p class="animate-on-scroll">Get the latest version of NXVM</p>
+
+            <!-- Кнопки загрузки -->
+            <div class="download-links animate-on-scroll">
+<!--                <a href="#" class="download-button">Download for Windows</a>-->
+<!--                <a href="#" class="download-button">Download for macOS</a>-->
+<!--                <a href="#" class="download-button">Download for Linux</a>-->
+                <a href="https://github.com/VladosNX/nxvm/releases/" target="_blank" class="download-button">See releases on GitHub</a>
+            </div>
+
+            <!-- Блок с командами установки -->
+            <div class="install-commands animate-on-scroll">
+                <h3>Installation in terminal</h3>
+
+                <div class="command-block">
+                    <h4>Preparing (Arch Linux)</h4>
+                    <div class="code-wrapper">
+                        <code>sudo pacman -S qemu-base qemu-system-x86 qt5-base python-pip</code>
+                        <button class="copy-button" onclick="copyToClipboard(this)">
+                            <span class="copy-text">Copy</span>
+                            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="command-block">
+                    <h4>Preparing (Debian)</h4>
+                    <div class="code-wrapper">
+                        <code>sudo apt install -y qtbase5-dev qemu qemu-system-x86 python-pip</code>
+                        <button class="copy-button" onclick="copyToClipboard(this)">
+                            <span class="copy-text">Copy</span>
+                            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="command-block">
+                    <h4>Preparing (Windows)</h4>
+                    <div class="code-wrapper">
+                        <code>wsl --install && wsl --install Debian</code>
+                        <button class="copy-button" onclick="copyToClipboard(this)">
+                            <span class="copy-text">Copy</span>
+                            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </button>
+                        <p>Then run Preparing Command for Debian</p>
+                    </div>
+                </div>
+
+                <div class="command-block">
+                    <h4>Installation</h4>
+                    <div class="code-wrapper">
+                        <code>curl -sSL https://raw.githubusercontent.com/VladosNX/nxvm/refs/heads/main/install.sh | sudo sh</code>
+                        <button class="copy-button" onclick="copyToClipboard(this)">
+                            <span class="copy-text">Copy</span>
+                            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- Подвал сайта -->
+<footer>
+    <div class="container">
+<!--        <p>&copy; 2025 NXVM. All rights reserved.</p>-->
+    </div>
+</footer>
+
+<!-- Скрипты -->
+<script src="script.js"></script>
+</body>
+</html>

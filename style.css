@@ -1,0 +1,296 @@
+/* Общие стили */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+    line-height: 1.6;
+    scroll-behavior: smooth; /* Плавная прокрутка */
+    font-family: "Atkinson Hyperlegible Mono", serif;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Верхнее меню */
+.navbar {
+    background-color: #393939;
+    color: white;
+    position: fixed; /* Меню закреплено вверху */
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000; /* Убедимся, что меню поверх других элементов */
+    /*box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); !* Тень для меню *!*/
+}
+
+.navbar .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+}
+
+.navbar .logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.navbar .nav-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 20px;
+}
+
+.navbar .nav-links a {
+    color: white;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: color 0.3s ease;
+}
+
+.navbar .nav-links a:hover {
+    color: #cce7ff; /* Изменение цвета при наведении */
+}
+
+/* Шапка */
+header {
+    background-color: #454545;
+    color: white;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding-top: 60px; /* Отступ для учета высоты меню */
+}
+
+header h1 {
+    margin: 0;
+    font-size: 3rem;
+}
+
+header p {
+    margin: 10px 0 0;
+    font-size: 1.2rem;
+}
+
+/* Секции */
+section {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.about {
+    background-color: white;
+}
+
+.about h2 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+
+.about p {
+    font-size: 1.1rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.downloads {
+    background-color: #f8f9fa;
+}
+
+.downloads h2 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+
+.download-links {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.download-button {
+    background-color: #007BFF;
+    color: white;
+    padding: 15px 30px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    transition: background-color 0.3s ease;
+}
+
+.download-button:hover {
+    background-color: #0056b3;
+}
+
+.install-commands {
+    margin-top: 40px;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.install-commands h3 {
+    color: #007BFF;
+    margin: 0 0 20px 0;
+    font-size: 1.5rem;
+}
+
+.command-block {
+    margin: 15px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #007BFF;
+}
+
+.command-block h4 {
+    margin: 0 0 8px 0;
+    color: #333;
+    font-size: 1rem;
+}
+
+.command-block code {
+    display: block;
+    font-family: 'Courier New', Courier, monospace;
+    background: #ffffff;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    word-break: break-all;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding-right: 80px; /* Добавлен отступ справа для кнопки */
+}
+
+
+/* Анимация для нового блока */
+.install-commands {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.6s ease 0.4s;
+}
+
+.install-commands.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+
+/* Подвал */
+footer {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 20px 0;
+}
+
+footer p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* Анимации */
+.animate-on-scroll {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s ease;
+}
+
+.animate-on-scroll.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Специфические задержки */
+.about .container > *,
+.downloads .container > * {
+    transition-delay: 0.3s;
+}
+
+header h1,
+header p {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s ease;
+}
+
+header.active h1,
+header.active p {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+header h1 {
+    transition-delay: 0.2s;
+}
+
+header p {
+    transition-delay: 0.4s;
+}
+
+/* Стили для кнопок копирования */
+.code-wrapper {
+    position: relative;
+    margin-top: 10px;
+}
+
+.copy-button {
+    position: absolute;
+    right: 10px; /* Увеличено расстояние от правого края */
+    top: 50%;
+    transform: translateY(-50%);
+    background: #007BFF;
+    border: none;
+    padding: 5px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.copy-button:hover {
+    background: #0056b3;
+}
+
+.check-icon {
+    width: 18px;
+    height: 18px;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.3s ease;
+}
+
+.copy-button.copied .check-icon {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.copy-button.copied .copy-text {
+    opacity: 0;
+    transform: translateX(-5px);
+}
+
+.copy-text {
+    transition: all 0.3s ease;
+}
