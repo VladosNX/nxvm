@@ -9,7 +9,7 @@ import yaml
 import subprocess
 import threading
 
-version = '0.2.1'
+version = '0.2.2'
 
 class FontNames():
     def __init__(self):
@@ -307,6 +307,14 @@ class VmSettingsWindow(QtWidgets.QMainWindow):
         self.settingsTitle.move(50, int((self.titleBlock.height() - self.settingsTitle.height()) / 2))
         self.settingsTitle.setStyleSheet("color: white;")
 
+        self.vmNameSubtitle = QtWidgets.QLabel(self.titleBlock)
+        self.vmNameSubtitle.setText(self.config['NAME'])
+        self.vmNameSubtitle.setFont(QFont(fontNames.splash, 14))
+        self.vmNameSubtitle.adjustSize()
+        self.vmNameSubtitle.move(self.titleBlock.width() - self.vmNameSubtitle.width() - 50,
+                        int((self.titleBlock.height() - self.vmNameSubtitle.height()) / 2))
+        self.vmNameSubtitle.setStyleSheet("color: white;")
+
         # Widgets for stacked widget
         lineEditWidth = 400
         lineEditHeight = 25
@@ -359,7 +367,7 @@ class VmSettingsWindow(QtWidgets.QMainWindow):
         self.vmHdaPathFileDialog.setText("Browse")
         self.vmHdaPathFileDialog.move(fileButtonStart, 50)
         self.vmHdaPathFileDialog.setStyleSheet("color: white;")
-        self.vmHdaPathFileDialog.clicked.connect(lambda: self.openFileSelect("HDA Path"))
+        self.vmHdaPathFileDialog.clicked.connect(lambda: self.vmHdaPathInputbox.setText(self.openFileSelect("HDA Path")[0]))
 
         self.vmCdromPathInputbox = QtWidgets.QLineEdit(self.vmStorageWidget)
         self.vmCdromPathInputbox.setFixedSize(fileEditWidth, lineEditHeight)
@@ -377,7 +385,7 @@ class VmSettingsWindow(QtWidgets.QMainWindow):
         self.vmCdromPathFileDialog.setText("Browse")
         self.vmCdromPathFileDialog.move(fileButtonStart, 80)
         self.vmCdromPathFileDialog.setStyleSheet("color: white;")
-        self.vmCdromPathFileDialog.clicked.connect(lambda: self.openFileSelect("CDROM Path"))
+        self.vmCdromPathFileDialog.clicked.connect(lambda: self.vmCdromPathInputbox.setText(self.openFileSelect("CDROM Path")[0]))
 
         # Hardware block
         self.vmHardwareWidget = QtWidgets.QWidget()
@@ -482,7 +490,7 @@ class VmSettingsWindow(QtWidgets.QMainWindow):
         print(self.vmPath)
         with open(self.vmPath + '/nxvm.yaml', 'w') as file:
             file.write(raw)
-        self.parent.parent.updateVmList()
+        # self.parent.parent.updateVmList()
         self.parent.setVmConfig(config)
         self.close()
 
@@ -685,6 +693,9 @@ class SettingsWindow(QtWidgets.QMainWindow):
         super().__init__()
         self.app = app
         self.parent = parent
+        self.vncViewersLabels = ['Tiger VNC', 'Remmina']
+        self.vncViewers = ['tigervnc', 'remmina']
+        self.vncViewersPaths = ['/bin/vncviewer', '/bin/remmina']
         screenSize = self.app.desktop().availableGeometry()
         windowWidth = 1000
         windowHeight = 500
@@ -695,8 +706,6 @@ class SettingsWindow(QtWidgets.QMainWindow):
         with open(os.path.join(os.getenv('HOME'), 'NXVMs', 'config.yaml'), 'r') as file:
             raw = file.read()
         self.config = yaml.load(raw, yaml.Loader)
-
-        self.vncViewers = ['tigervnc', 'remmina']
 
         self.titleBlock = QtWidgets.QWidget(self)
         self.titleBlock.setFixedSize(windowWidth, 100)
@@ -709,6 +718,14 @@ class SettingsWindow(QtWidgets.QMainWindow):
         self.settingsTitle.adjustSize()
         self.settingsTitle.move(50, int((self.titleBlock.height() - self.settingsTitle.height()) / 2))
         self.settingsTitle.setStyleSheet("color: white;")
+
+        self.nxvmSubtitle = QtWidgets.QLabel(self.titleBlock)
+        self.nxvmSubtitle.setText(f"NXVM v{version}")
+        self.nxvmSubtitle.setFont(QFont(fontNames.splash, 14))
+        self.nxvmSubtitle.adjustSize()
+        self.nxvmSubtitle.move(self.titleBlock.width() - self.nxvmSubtitle.width() - 50,
+                    int((self.titleBlock.height() - self.nxvmSubtitle.height()) / 2))
+        self.nxvmSubtitle.setStyleSheet("color: white;")
 
         # Widgets for stacked widget
         lineEditWidth = 400
@@ -729,9 +746,17 @@ class SettingsWindow(QtWidgets.QMainWindow):
         self.vncViewerCombobox = QtWidgets.QComboBox(self.generalWidget)
         self.vncViewerCombobox.setFixedSize(lineEditWidth, lineEditHeight)
         self.vncViewerCombobox.move(lineEditStart, 50)
-        self.vncViewerCombobox.addItems(['Tiger VNC', 'Remmina'])
+        self.vncViewerCombobox.addItems(self.vncViewersLabels)
         self.vncViewerCombobox.setCurrentIndex(self.vncViewers.index(self.config['VNCVIEWER']))
         self.vncViewerCombobox.setStyleSheet("color: white;")
+        self.vncViewerCombobox.currentIndexChanged.connect(self.updateVncViewerStatus)
+
+        self.vncViewerStatus = QtWidgets.QLabel(self.generalWidget)
+        self.vncViewerStatus.setFont(QFont(fontNames.splash, 12))
+        self.vncViewerStatus.adjustSize()
+        self.vncViewerStatus.move(lineEditStart, 80)
+        self.vncViewerStatus.setStyleSheet("color: white;")
+        self.updateVncViewerStatus(self.vncViewerCombobox.currentIndex())
 
         self.leftMenu = QtWidgets.QListWidget(self)
         self.leftMenu.setFixedSize(180, windowHeight - self.titleBlock.height() - 20)
@@ -763,6 +788,15 @@ class SettingsWindow(QtWidgets.QMainWindow):
             file.write(yaml.dump(newConfig))
         self.parent.updateConfig()
         self.close()
+
+    def updateVncViewerStatus(self, index):
+        viewerPath = self.vncViewersPaths[index]
+        viewerLabel = self.vncViewersLabels[index]
+        if not os.path.exists(viewerPath):
+            self.vncViewerStatus.setText(f"WARNING: {viewerLabel} not found!")
+            self.vncViewerStatus.adjustSize()
+        else:
+            self.vncViewerStatus.setText("")
 
 class Window(QtWidgets.QMainWindow):
     def __init__(self, app):

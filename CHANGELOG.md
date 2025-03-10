@@ -1,5 +1,11 @@
 # Changelog for NXVM Versions
 
+# NXVM v0.2.2
+
+- Added message about missing VNC viewers
+- Little design update in settings
+- Bugfix (Fixed HDA/CDROM choosing)
+
 # NXVM v0.2.1
 
 - Bugfix (Automatically creating main config file)

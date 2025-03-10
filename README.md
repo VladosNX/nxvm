@@ -1,8 +1,10 @@
-**WARNING** You're reading a README.md file for beta-version v0.1.
+[NXVM Site is online!](https://vladosnx.github.io/nxvm)
+
+**WARNING** You're reading a README.md file for beta-version v0.2.2!
 This version has a lot of bugs and program can be exited with errors for a many times.
 Please report bugs at [project page](https://github.com/vladosnx/nxvm).
 
-# NXVM v0.1
+# NXVM v0.2.2
 
 > *Just a VM manager for QEMU*
 
@@ -36,6 +38,6 @@ Installation on Debian-based systems:
 
 Open your terminal and execute command:
 
-> curl -sSL https://raw.githubusercontent.com/VladosNX/nxvm/refs/heads/main/install.sh | sudo sh
+> curl -sSL https://raw.githubusercontent.com/VladosNX/nxvm/refs/heads/main/install.sh | sudo bash
 
 This command will download and install NXVM from source without buildings.
