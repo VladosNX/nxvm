@@ -4,7 +4,7 @@ import subprocess
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication
 
-process = subprocess.Popen(['nxvm.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+process = subprocess.Popen(['nxvm'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 process.wait()
 exitcode = process.poll()
 if exitcode != 0:

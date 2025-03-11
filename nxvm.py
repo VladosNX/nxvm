@@ -8,8 +8,11 @@ import os
 import yaml
 import subprocess
 import threading
+from nxvmtranslate import translateInit
 
-version = '0.2.2'
+version = '0.3.0'
+globalConfig = yaml.load(open(os.getenv('HOME') + '/NXVMs/config.yaml').read(), yaml.Loader)
+translate = translateInit(globalConfig['LANGUAGE'])
 
 class FontNames():
     def __init__(self):
@@ -62,14 +65,14 @@ class ContentWidget(QtWidgets.QWidget):
         self.splashText.setStyleSheet("color: white;")
 
         self.welcomeText = QtWidgets.QLabel(self.content)
-        self.welcomeText.setText('Welcome to NXVM')
+        self.welcomeText.setText(translate['welcomeToNXVM'])
         self.welcomeText.setFont(QFont(fontNames.standard, 12))
         self.welcomeText.adjustSize()
         self.welcomeText.move(int((self.content.width() - self.welcomeText.width()) / 2), 240)
         self.welcomeText.setStyleSheet("color: white;")
 
         self.newVmButton = QtWidgets.QPushButton(self.content)
-        self.newVmButton.setText("New VM")
+        self.newVmButton.setText(translate['newVm'])
         self.newVmButton.setFont(QFont(fontNames.standard))
         self.newVmButton.adjustSize()
         self.newVmButton.move(int((self.content.width() - self.newVmButton.width()) / 2) - 100, 300)
@@ -77,14 +80,14 @@ class ContentWidget(QtWidgets.QWidget):
         self.newVmButton.clicked.connect(self.newVm)
 
         self.openVmButton = QtWidgets.QPushButton(self.content)
-        self.openVmButton.setText("Open VM")
+        self.openVmButton.setText(translate['openVm'])
         self.openVmButton.setFont(QFont(fontNames.standard))
         self.openVmButton.adjustSize()
         self.openVmButton.move(int((self.content.width() - self.openVmButton.width()) / 2), 300)
         self.openVmButton.setStyleSheet("color: white;")
 
         self.settingsButton = QtWidgets.QPushButton(self.content)
-        self.settingsButton.setText("Settings")
+        self.settingsButton.setText(translate['settings'])
         self.settingsButton.setFont(QFont(fontNames.standard))
         self.settingsButton.adjustSize()
         self.settingsButton.move(int((self.content.width() - self.openVmButton.width()) / 2) + 100, 300)
@@ -133,7 +136,7 @@ class ShowVmWindow(QtWidgets.QMainWindow):
         self.descriptionText.setStyleSheet("border: none; color: white;")
 
         self.runButton = QtWidgets.QPushButton(self.content)
-        self.runButton.setText("Run")
+        self.runButton.setText(translate['run'])
         self.runButton.setFont(QFont(fontNames.splash))
         self.runButton.setFixedSize(100, 30)
         self.runButton.move(200, 10)
@@ -141,7 +144,7 @@ class ShowVmWindow(QtWidgets.QMainWindow):
         self.runButton.clicked.connect(self.runVm)
 
         self.stopButton = QtWidgets.QPushButton(self.content)
-        self.stopButton.setText("Stop")
+        self.stopButton.setText(translate['stop'])
         self.stopButton.setFont(QFont(fontNames.splash))
         self.stopButton.setFixedSize(100, 30)
         self.stopButton.move(200, 10)
@@ -150,16 +153,16 @@ class ShowVmWindow(QtWidgets.QMainWindow):
         self.stopButton.hide()
 
         self.vncViewButton = QtWidgets.QPushButton(self.content)
-        self.vncViewButton.setText("Connect to VNC")
+        self.vncViewButton.setText(translate['connectToVNC'])
         self.vncViewButton.setFont(QFont(fontNames.splash))
-        self.vncViewButton.setFixedSize(100, 30)
+        self.vncViewButton.setFixedSize(120, 30)
         self.vncViewButton.move(int((self.content.width() - self.vncViewButton.width()) / 2), 10)
         self.vncViewButton.clicked.connect(self.vncViewStart)
         self.vncViewButton.setDisabled(True)
         self.vncViewButton.setStyleSheet(f"color: {colors.disabled};")
 
         self.cdromBootCheckbox = QtWidgets.QCheckBox(self.content)
-        self.cdromBootCheckbox.setText("Cdrom Boot")
+        self.cdromBootCheckbox.setText(translate['cdromBoot'])
         self.cdromBootCheckbox.setFont(QFont(fontNames.standard, 14))
         # self.cdromBootCheckbox.setStyleSheet("""
         # QCheckBox {
@@ -179,7 +182,7 @@ class ShowVmWindow(QtWidgets.QMainWindow):
         self.cdromBootCheckbox.move(100, appHeight - 100)
 
         self.settingsButton = QtWidgets.QPushButton(self.content)
-        self.settingsButton.setText("Settings")
+        self.settingsButton.setText(translate['settings'])
         self.settingsButton.setFont(QFont(fontNames.splash))
         self.settingsButton.setFixedSize(100, 30)
         self.settingsButton.move(appWidth - parent.leftMenu.width() - self.settingsButton.width() - 200, 10)
@@ -301,7 +304,7 @@ class VmSettingsWindow(QtWidgets.QMainWindow):
         self.titleBlock.setStyleSheet(f"background-color: {colors.block};")
 
         self.settingsTitle = QtWidgets.QLabel(self.titleBlock)
-        self.settingsTitle.setText("Settings")
+        self.settingsTitle.setText(translate['settings'])
         self.settingsTitle.setFont(QFont(fontNames.splash, 28))
         self.settingsTitle.adjustSize()
         self.settingsTitle.move(50, int((self.titleBlock.height() - self.settingsTitle.height()) / 2))
@@ -329,21 +332,9 @@ class VmSettingsWindow(QtWidgets.QMainWindow):
         self.vmNameInputbox.setFixedSize(lineEditWidth, lineEditHeight)
         self.vmNameInputbox.move(lineEditStart, 50)
         self.vmNameInputbox.setStyleSheet("color: white;")
-        self.vmNameHint = QtWidgets.QLabel(self.vmNameWidget)
-        self.vmNameHint.setText("VM Name:")
-        self.vmNameHint.setFont(QFont(fontNames.standard, 14))
-        self.vmNameHint.setStyleSheet("color: white;")
-        self.vmNameHint.adjustSize()
-        self.vmNameHint.move(hintStart, 50)
-
-        self.vmNameWidget = QtWidgets.QWidget()
-        self.vmNameInputbox = QtWidgets.QLineEdit(self.vmNameWidget)
-        self.vmNameInputbox.setFixedSize(lineEditWidth, lineEditHeight)
-        self.vmNameInputbox.move(lineEditStart, 50)
-        self.vmNameInputbox.setStyleSheet("color: white;")
         self.vmNameInputbox.setText(self.config['NAME'])
         self.vmNameHint = QtWidgets.QLabel(self.vmNameWidget)
-        self.vmNameHint.setText("VM Name:")
+        self.vmNameHint.setText(translate['vmName'] + ':')
         self.vmNameHint.setFont(QFont(fontNames.standard, 14))
         self.vmNameHint.setStyleSheet("color: white;")
         self.vmNameHint.adjustSize()
@@ -357,14 +348,14 @@ class VmSettingsWindow(QtWidgets.QMainWindow):
         self.vmHdaPathInputbox.setStyleSheet("color: white;")
         self.vmHdaPathInputbox.setText(self.config['HDA'])
         self.vmHdaPathHint = QtWidgets.QLabel(self.vmStorageWidget)
-        self.vmHdaPathHint.setText("Path to HDA:")
+        self.vmHdaPathHint.setText(translate['pathToHda'] + ':')
         self.vmHdaPathHint.setFont(QFont(fontNames.standard, 14))
         self.vmHdaPathHint.setStyleSheet("color: white;")
         self.vmHdaPathHint.adjustSize()
         self.vmHdaPathHint.move(hintStart, 50)
         self.vmHdaPathFileDialog = QtWidgets.QPushButton(self.vmStorageWidget)
         self.vmHdaPathFileDialog.setFixedSize(fileButtonWidth, lineEditHeight)
-        self.vmHdaPathFileDialog.setText("Browse")
+        self.vmHdaPathFileDialog.setText(translate['browse'])
         self.vmHdaPathFileDialog.move(fileButtonStart, 50)
         self.vmHdaPathFileDialog.setStyleSheet("color: white;")
         self.vmHdaPathFileDialog.clicked.connect(lambda: self.vmHdaPathInputbox.setText(self.openFileSelect("HDA Path")[0]))
@@ -375,14 +366,14 @@ class VmSettingsWindow(QtWidgets.QMainWindow):
         self.vmCdromPathInputbox.setStyleSheet("color: white;")
         self.vmCdromPathInputbox.setText(self.config['CDROM'])
         self.vmCdromPathHint = QtWidgets.QLabel(self.vmStorageWidget)
-        self.vmCdromPathHint.setText("Path to CDROM:")
+        self.vmCdromPathHint.setText(translate['pathToCdrom'] + ':')
         self.vmCdromPathHint.setFont(QFont(fontNames.standard, 14))
         self.vmCdromPathHint.setStyleSheet("color: white;")
         self.vmCdromPathHint.adjustSize()
         self.vmCdromPathHint.move(hintStart, 80)
         self.vmCdromPathFileDialog = QtWidgets.QPushButton(self.vmStorageWidget)
         self.vmCdromPathFileDialog.setFixedSize(fileButtonWidth, lineEditHeight)
-        self.vmCdromPathFileDialog.setText("Browse")
+        self.vmCdromPathFileDialog.setText(translate['browse'])
         self.vmCdromPathFileDialog.move(fileButtonStart, 80)
         self.vmCdromPathFileDialog.setStyleSheet("color: white;")
         self.vmCdromPathFileDialog.clicked.connect(lambda: self.vmCdromPathInputbox.setText(self.openFileSelect("CDROM Path")[0]))
@@ -396,7 +387,7 @@ class VmSettingsWindow(QtWidgets.QMainWindow):
         self.vmCpusInputbox.setText(str(self.config['CPUS']))
         self.vmCpusInputbox.setValidator(QIntValidator())
         self.vmCpusHint = QtWidgets.QLabel(self.vmHardwareWidget)
-        self.vmCpusHint.setText("CPUs amount:")
+        self.vmCpusHint.setText(translate['cpusAmount'] + ':')
         self.vmCpusHint.setFont(QFont(fontNames.standard, 14))
         self.vmCpusHint.setStyleSheet("color: white;")
         self.vmCpusHint.adjustSize()
@@ -409,28 +400,28 @@ class VmSettingsWindow(QtWidgets.QMainWindow):
         self.vmRamInputbox.setText(str(self.config['RAM']))
         self.vmRamInputbox.setValidator(QIntValidator())
         self.vmRamHint = QtWidgets.QLabel(self.vmHardwareWidget)
-        self.vmRamHint.setText("RAM (MB):")
+        self.vmRamHint.setText(f"{translate['ram']} (MB):")
         self.vmRamHint.setFont(QFont(fontNames.standard, 14))
         self.vmRamHint.setStyleSheet("color: white;")
         self.vmRamHint.adjustSize()
         self.vmRamHint.move(hintStart, 80)
 
         self.vmUseKvmCheckbox = QtWidgets.QCheckBox(self.vmHardwareWidget)
-        self.vmUseKvmCheckbox.setText("Use KVM Acceleration")
+        self.vmUseKvmCheckbox.setText(translate['useKvmAcceleration'])
         self.vmUseKvmCheckbox.setStyleSheet(checkboxStyle)
         self.vmUseKvmCheckbox.adjustSize()
         self.vmUseKvmCheckbox.move(lineEditStart, 110)
         self.vmUseKvmCheckbox.setChecked(True if self.config['USE_KVM'] == 'TRUE' else False)
 
         self.vmUseQ35Checkbox = QtWidgets.QCheckBox(self.vmHardwareWidget)
-        self.vmUseQ35Checkbox.setText("Emulate Intel Q35 chipset")
+        self.vmUseQ35Checkbox.setText(translate['emulateIntelQ35Chipset'])
         self.vmUseQ35Checkbox.setStyleSheet(checkboxStyle)
         self.vmUseQ35Checkbox.adjustSize()
         self.vmUseQ35Checkbox.move(lineEditStart, 140)
         self.vmUseQ35Checkbox.setChecked(True if self.config['USE_Q35'] == 'TRUE' else False)
 
         self.vmUseHostCpuCheckbox = QtWidgets.QCheckBox(self.vmHardwareWidget)
-        self.vmUseHostCpuCheckbox.setText("Allow using host CPU")
+        self.vmUseHostCpuCheckbox.setText(translate['allowUsingHostCpu'])
         self.vmUseHostCpuCheckbox.setStyleSheet(checkboxStyle)
         self.vmUseHostCpuCheckbox.adjustSize()
         self.vmUseHostCpuCheckbox.move(lineEditStart, 170)
@@ -440,7 +431,8 @@ class VmSettingsWindow(QtWidgets.QMainWindow):
         self.leftMenu.setFixedSize(180, windowHeight - self.titleBlock.height() - 20)
         self.leftMenu.move(10, self.titleBlock.height() + 10)
         self.leftMenu.setStyleSheet(f"background-color: {colors.block}; color: white;")
-        self.leftMenu.addItems(['VM Name', 'Storage', 'Hardware'])
+        self.leftMenu.addItems([
+            translate['vmName'], translate['storage'], translate['hardware']])
         self.leftMenu.currentRowChanged.connect(self.changeBlock)
 
         self.stackedWidget = QtWidgets.QStackedWidget(self)
@@ -452,7 +444,7 @@ class VmSettingsWindow(QtWidgets.QMainWindow):
         self.stackedWidget.addWidget(self.vmHardwareWidget)
 
         self.saveButton = QtWidgets.QPushButton(self)
-        self.saveButton.setText("Save")
+        self.saveButton.setText(translate['save'])
         self.saveButton.setStyleSheet("color: white;")
         self.saveButton.adjustSize()
         self.saveButton.move(windowWidth - self.saveButton.width() - 50, windowHeight - 50)
@@ -503,7 +495,7 @@ class NewVmWindow(QtWidgets.QMainWindow):
         windowWidth = 600
         windowHeight = 400
         self.setGeometry(int((screenSize.width() - windowWidth) / 2), int((screenSize.height() - windowHeight) / 2), windowWidth, windowHeight)
-        self.setWindowTitle("New virtual machine")
+        self.setWindowTitle(translate['newVirtualMachine'])
         self.setStyleSheet(f"background-color: {colors.bg};")
 
         self.titleBlock = QtWidgets.QWidget(self)
@@ -513,7 +505,7 @@ class NewVmWindow(QtWidgets.QMainWindow):
         self.titleBlock.setStyleSheet(f"background-color: {colors.block};")
 
         self.newVmTitle = QtWidgets.QLabel(self.titleBlock)
-        self.newVmTitle.setText("New virtual machine")
+        self.newVmTitle.setText(translate['newVirtualMachine'])
         self.newVmTitle.setFont(QFont(fontNames.splash, 24))
         self.newVmTitle.adjustSize()
         self.newVmTitle.move(int((windowWidth - self.newVmTitle.width()) / 2), int((self.titleBlock.height() - self.newVmTitle.height()) / 2))
@@ -522,7 +514,7 @@ class NewVmWindow(QtWidgets.QMainWindow):
         lineEditStart = 270
 
         self.newVmNameHint = QtWidgets.QLabel(self)
-        self.newVmNameHint.setText("VM Name:")
+        self.newVmNameHint.setText(translate['vmName'] + ':')
         self.newVmNameHint.setFont(QFont(fontNames.standard, 12))
         self.newVmNameHint.adjustSize()
         self.newVmNameHint.move(100, 120)
@@ -535,7 +527,7 @@ class NewVmWindow(QtWidgets.QMainWindow):
         self.newVmNameHasForbiddenSymbol = False
 
         self.newVmPathHint = QtWidgets.QLabel(self)
-        self.newVmPathHint.setText("VM Path:")
+        self.newVmPathHint.setText(translate['vmPath'] + ':')
         self.newVmPathHint.setFont(QFont(fontNames.standard, 12))
         self.newVmPathHint.adjustSize()
         self.newVmPathHint.move(100, 150)
@@ -548,7 +540,7 @@ class NewVmWindow(QtWidgets.QMainWindow):
         self.newVmPathInputbox.textChanged.connect(self.newVmPathInputboxChanged)
 
         self.newVmRamHint = QtWidgets.QLabel(self)
-        self.newVmRamHint.setText("RAM Amount (MB):")
+        self.newVmRamHint.setText(translate['ram'] + ':')
         self.newVmRamHint.setFont(QFont(fontNames.standard, 12))
         self.newVmRamHint.adjustSize()
         self.newVmRamHint.move(100, 180)
@@ -562,7 +554,7 @@ class NewVmWindow(QtWidgets.QMainWindow):
         self.newVmRamInputbox.textChanged.connect(self.inputboxChanged)
 
         self.newVmDiskSizeHint = QtWidgets.QLabel(self)
-        self.newVmDiskSizeHint.setText("Disk Size (GB):")
+        self.newVmDiskSizeHint.setText(translate['diskSize'] + ':')
         self.newVmDiskSizeHint.setFont(QFont(fontNames.standard, 12))
         self.newVmDiskSizeHint.adjustSize()
         self.newVmDiskSizeHint.move(100, 210)
@@ -576,7 +568,7 @@ class NewVmWindow(QtWidgets.QMainWindow):
         self.newVmDiskSizeInputbox.textChanged.connect(self.inputboxChanged)
 
         self.newVmCpusAmountHint = QtWidgets.QLabel(self)
-        self.newVmCpusAmountHint.setText("CPUs Amount:")
+        self.newVmCpusAmountHint.setText(translate['cpusAmount'] + ':')
         self.newVmCpusAmountHint.setFont(QFont(fontNames.standard, 12))
         self.newVmCpusAmountHint.adjustSize()
         self.newVmCpusAmountHint.move(100, 240)
@@ -598,7 +590,7 @@ class NewVmWindow(QtWidgets.QMainWindow):
         self.warnText.hide()
         
         self.confirmButton = QtWidgets.QPushButton(self)
-        self.confirmButton.setText("Confirm")
+        self.confirmButton.setText(translate['confirm'])
         self.confirmButton.setFont(QFont(fontNames.splash, 10))
         self.confirmButton.adjustSize()
         self.confirmButton.move(windowWidth - self.confirmButton.width() - 80, windowHeight - 40)
@@ -611,7 +603,7 @@ class NewVmWindow(QtWidgets.QMainWindow):
         for symbol in forbiddenSymbols:
             if text.find(symbol) != -1:
                 self.warnText.show()
-                self.warnText.setText('VM Name contains a forbidden symbol')
+                self.warnText.setText(translate['nameContainsForbiddenSymbol'])
                 self.warnText.adjustSize()
                 self.confirmButton.setStyleSheet(f"color: {colors.disabled};")
                 self.confirmButton.setDisabled(True)
@@ -626,7 +618,7 @@ class NewVmWindow(QtWidgets.QMainWindow):
 
     def newVmPathInputboxChanged(self, text):
         if os.path.exists(text):
-            self.warnText.setText(f"{text} already exists")
+            self.warnText.setText(translate['folderAlreadyExists'].replace('$FOLDER', text))
             self.warnText.adjustSize()
             self.warnText.show()
             self.confirmButton.setStyleSheet(f"color: {colors.disabled};")
@@ -696,6 +688,7 @@ class SettingsWindow(QtWidgets.QMainWindow):
         self.vncViewersLabels = ['Tiger VNC', 'Remmina']
         self.vncViewers = ['tigervnc', 'remmina']
         self.vncViewersPaths = ['/bin/vncviewer', '/bin/remmina']
+        self.languages = ['Русский', 'English']
         screenSize = self.app.desktop().availableGeometry()
         windowWidth = 1000
         windowHeight = 500
@@ -705,7 +698,6 @@ class SettingsWindow(QtWidgets.QMainWindow):
 
         with open(os.path.join(os.getenv('HOME'), 'NXVMs', 'config.yaml'), 'r') as file:
             raw = file.read()
-        self.config = yaml.load(raw, yaml.Loader)
 
         self.titleBlock = QtWidgets.QWidget(self)
         self.titleBlock.setFixedSize(windowWidth, 100)
@@ -713,7 +705,7 @@ class SettingsWindow(QtWidgets.QMainWindow):
         self.titleBlock.setStyleSheet(f"background-color: {colors.block};")
 
         self.settingsTitle = QtWidgets.QLabel(self.titleBlock)
-        self.settingsTitle.setText("Settings")
+        self.settingsTitle.setText(translate['settings'])
         self.settingsTitle.setFont(QFont(fontNames.splash, 28))
         self.settingsTitle.adjustSize()
         self.settingsTitle.move(50, int((self.titleBlock.height() - self.settingsTitle.height()) / 2))
@@ -738,7 +730,7 @@ class SettingsWindow(QtWidgets.QMainWindow):
 
         self.generalWidget = QtWidgets.QWidget()
         self.vncViewerHint = QtWidgets.QLabel(self.generalWidget)
-        self.vncViewerHint.setText("VNC Viewer")
+        self.vncViewerHint.setText(translate['vncViewer'])
         self.vncViewerHint.setFont(QFont(fontNames.standard, 14))
         self.vncViewerHint.setStyleSheet("color: white;")
         self.vncViewerHint.adjustSize()
@@ -747,7 +739,7 @@ class SettingsWindow(QtWidgets.QMainWindow):
         self.vncViewerCombobox.setFixedSize(lineEditWidth, lineEditHeight)
         self.vncViewerCombobox.move(lineEditStart, 50)
         self.vncViewerCombobox.addItems(self.vncViewersLabels)
-        self.vncViewerCombobox.setCurrentIndex(self.vncViewers.index(self.config['VNCVIEWER']))
+        self.vncViewerCombobox.setCurrentIndex(self.vncViewers.index(globalConfig['VNCVIEWER']))
         self.vncViewerCombobox.setStyleSheet("color: white;")
         self.vncViewerCombobox.currentIndexChanged.connect(self.updateVncViewerStatus)
 
@@ -758,11 +750,24 @@ class SettingsWindow(QtWidgets.QMainWindow):
         self.vncViewerStatus.setStyleSheet("color: white;")
         self.updateVncViewerStatus(self.vncViewerCombobox.currentIndex())
 
+        self.languageHint = QtWidgets.QLabel(self.generalWidget)
+        self.languageHint.setText(translate['language'])
+        self.languageHint.setFont(QFont(fontNames.standard, 14))
+        self.languageHint.setStyleSheet("color: white;")
+        self.languageHint.adjustSize()
+        self.languageHint.move(hintStart, 110)
+        self.languageCombobox = QtWidgets.QComboBox(self.generalWidget)
+        self.languageCombobox.setFixedSize(lineEditWidth, lineEditHeight)
+        self.languageCombobox.move(lineEditStart, 110)
+        self.languageCombobox.addItems(self.languages)
+        self.languageCombobox.setCurrentIndex(self.languages.index(globalConfig['LANGUAGE']))
+        self.languageCombobox.setStyleSheet("color: white;")
+
         self.leftMenu = QtWidgets.QListWidget(self)
         self.leftMenu.setFixedSize(180, windowHeight - self.titleBlock.height() - 20)
         self.leftMenu.move(10, self.titleBlock.height() + 10)
         self.leftMenu.setStyleSheet(f"background-color: {colors.block}; color: white;")
-        self.leftMenu.addItems(['General'])
+        self.leftMenu.addItems([translate['general']])
         self.leftMenu.currentRowChanged.connect(self.changeBlock)
 
         self.stackedWidget = QtWidgets.QStackedWidget(self)
@@ -772,7 +777,7 @@ class SettingsWindow(QtWidgets.QMainWindow):
         self.stackedWidget.addWidget(self.generalWidget)
 
         self.saveButton = QtWidgets.QPushButton(self)
-        self.saveButton.setText("Save")
+        self.saveButton.setText(translate['save'])
         self.saveButton.setStyleSheet("color: white;")
         self.saveButton.adjustSize()
         self.saveButton.move(windowWidth - self.saveButton.width() - 50, windowHeight - 50)
@@ -782,7 +787,8 @@ class SettingsWindow(QtWidgets.QMainWindow):
 
     def saveSettings(self):
         newConfig = {
-            'VNCVIEWER': self.vncViewers[self.vncViewerCombobox.currentIndex()]
+            'VNCVIEWER': self.vncViewers[self.vncViewerCombobox.currentIndex()],
+            'LANGUAGE': self.languages[self.languageCombobox.currentIndex()]
         }
         with open(os.path.join(os.getenv('HOME'), 'NXVMs', 'config.yaml'), 'w') as file:
             file.write(yaml.dump(newConfig))
@@ -793,7 +799,7 @@ class SettingsWindow(QtWidgets.QMainWindow):
         viewerPath = self.vncViewersPaths[index]
         viewerLabel = self.vncViewersLabels[index]
         if not os.path.exists(viewerPath):
-            self.vncViewerStatus.setText(f"WARNING: {viewerLabel} not found!")
+            self.vncViewerStatus.setText(translate['vncViewerNotFound'].replace('$VIEWER', viewerLabel))
             self.vncViewerStatus.adjustSize()
         else:
             self.vncViewerStatus.setText("")
@@ -860,7 +866,7 @@ class Window(QtWidgets.QMainWindow):
         self.vmsList = []
         self.ignoreRowChanged = True
         self.leftMenuList.clear()
-        self.leftMenuList.addItems(['Main menu'])
+        self.leftMenuList.addItems([translate['mainMenu']])
         if os.path.exists(self.vmsPath):
             os.chdir(self.vmsPath)
             for path, dirs, files in os.walk(self.vmsPath):
@@ -909,8 +915,7 @@ class Window(QtWidgets.QMainWindow):
 
 def showBetaWarning():
     msg = QtWidgets.QMessageBox()
-    msg.setText("You're using a beta version!\nThis program has a lot of bugs, program can be closed with errors "
-                "for a many times!")
+    msg.setText(translate['betaWarning'].replace('\\n', '\n'))
     msg.setIcon(QtWidgets.QMessageBox.Warning)
     msg.setStyleSheet(f"background-color: {colors.bg}; color: white;")
     msg.exec_()

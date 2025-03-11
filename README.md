@@ -4,7 +4,7 @@
 This version has a lot of bugs and program can be exited with errors for a many times.
 Please report bugs at [project page](https://github.com/vladosnx/nxvm).
 
-# NXVM v0.2.2
+# NXVM v0.3.0
 
 > *Just a VM manager for QEMU*
 
