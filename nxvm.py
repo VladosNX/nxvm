@@ -1,16 +1,20 @@
 #!/bin/python3
 import time
 import PyQt5
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtGui import QFont, QIntValidator
 import random
 import os
 import yaml
 import subprocess
 import threading
+import shutil
 from nxvmtranslate import translateInit
+import sys
+from check_configs import check_configs
 
-version = '0.3.0'
+check_configs()
+version = '0.4.0'
 globalConfig = yaml.load(open(os.getenv('HOME') + '/NXVMs/config.yaml').read(), yaml.Loader)
 translate = translateInit(globalConfig['LANGUAGE'])
 
@@ -41,6 +45,31 @@ QCheckBox::indicator {
     height: 20px;
 }
 """
+
+def parseCustomOptions(options):
+    result = []
+    quote, doubleQuote = False, False
+    section = ''
+    i = 0
+    backslash = False
+    optionsLength = len(options)
+    while i < optionsLength:
+        symbol = options[i]
+        if symbol == '\\':
+            backslash = True
+        elif symbol == "'" and not backslash:
+            quote = not quote
+        elif symbol == "'" and not backslash:
+            doubleQuote = not doubleQuote
+        elif symbol == ' ' and not True in [quote, doubleQuote]:
+            result.append(section)
+            section = ''
+        else:
+            section += symbol
+        if i == optionsLength - 1:
+            result.append(section)
+        i += 1
+    return result
 
 class ContentWidget(QtWidgets.QWidget):
     def __init__(self, parent):
@@ -93,6 +122,27 @@ class ContentWidget(QtWidgets.QWidget):
         self.settingsButton.move(int((self.content.width() - self.openVmButton.width()) / 2) + 100, 300)
         self.settingsButton.setStyleSheet("color: white;")
         self.settingsButton.clicked.connect(self.openSettings)
+
+        self.qemuNotInstalledBox = QtWidgets.QWidget(self.content)
+        self.qemuNotInstalledBox.setFixedSize(self.content.width() - 100, 100)
+        self.qemuNotInstalledBox.move(50, 450)
+        self.qemuNotInstalledBox.setStyleSheet(f"background-color: {colors.block}")
+
+        self.qemuNotInstalledTitle = QtWidgets.QLabel(self.qemuNotInstalledBox)
+        self.qemuNotInstalledTitle.setText(translate['qemuIsNotInstalled'])
+        self.qemuNotInstalledTitle.setFont(QFont(fontNames.standard, 18))
+        self.qemuNotInstalledTitle.adjustSize()
+        self.qemuNotInstalledTitle.move(20, 20)
+        self.qemuNotInstalledTitle.setStyleSheet("color: white;")
+
+        self.qemuNotInstalledText = QtWidgets.QLabel(self.qemuNotInstalledBox)
+        self.qemuNotInstalledText.setText(translate['qemuNotInstalledText'])
+        self.qemuNotInstalledText.setFont(QFont(fontNames.standard, 12))
+        self.qemuNotInstalledText.setFixedSize(self.qemuNotInstalledBox.width() - 60, 30)
+        self.qemuNotInstalledText.setStyleSheet("border: none; color: white;")
+        self.qemuNotInstalledText.setOpenExternalLinks(True)
+        self.qemuNotInstalledText.move(20, 60)
+        self.qemuNotInstalledUpdate()
         
     def newVm(self):
         self.newVmWindow = NewVmWindow(self.app, self.parent)
@@ -102,6 +152,17 @@ class ContentWidget(QtWidgets.QWidget):
     def openSettings(self):
         self.settingsWindow = SettingsWindow(self.app, self.parent)
         self.settingsWindow.show()
+
+    def qemuNotInstalledUpdate(self):
+        found = False
+        for item in os.getenv('PATH').split(':'):
+            if os.path.exists(f'{item}/qemu-system-x86_64'):
+                found = True
+                break
+        if found:
+            self.qemuNotInstalledBox.hide()
+        else:
+            self.qemuNotInstalledBox.show()
 
 class ShowVmWindow(QtWidgets.QMainWindow):
     def __init__(self, app, parent):
@@ -164,19 +225,6 @@ class ShowVmWindow(QtWidgets.QMainWindow):
         self.cdromBootCheckbox = QtWidgets.QCheckBox(self.content)
         self.cdromBootCheckbox.setText(translate['cdromBoot'])
         self.cdromBootCheckbox.setFont(QFont(fontNames.standard, 14))
-        # self.cdromBootCheckbox.setStyleSheet("""
-        # QCheckBox {
-        #     color: white;
-        # }
-        # QCheckBox::indicator {
-        #     border: 2px solid white;
-        #     width: 20px;
-        #     height: 20px;
-        # }
-        # QCheckBox::indicator:checked {
-        #     border: 2px solid green;
-        # }
-        # """)
         self.cdromBootCheckbox.setStyleSheet(checkboxStyle)
         self.cdromBootCheckbox.adjustSize()
         self.cdromBootCheckbox.move(100, appHeight - 100)
@@ -189,11 +237,22 @@ class ShowVmWindow(QtWidgets.QMainWindow):
         self.settingsButton.setStyleSheet("color: white;")
         self.settingsButton.clicked.connect(self.openSettings)
 
+    def loadOption(self, key):
+        if key in self.vmConfig:
+            return self.vmConfig[key]
+        else:
+            return ''
+
     def setVmConfig(self, vmConfig):
         self.vmConfig = vmConfig
         description = ""
         for k, v in vmConfig.items():
-            description += f"**{k}**: `{v}`\n\n"
+            if f"vmconfig_{k}" in translate:
+                value = f'`{v}`'
+                if v == '': value = f"*{translate['valueNotSet']}*"
+                elif v == 'TRUE': value = f"*{translate['valueTrue']}*"
+                elif v == 'FALSE': value = f"*{translate['valueFalse']}*"
+                description += f"**{translate[f'vmconfig_{k}']}**: {value}\n\n"
         self.descriptionText.setMarkdown(description)
         self.vmTitle.setText(vmConfig["NAME"])
         self.vmTitle.adjustSize()
@@ -209,6 +268,10 @@ class ShowVmWindow(QtWidgets.QMainWindow):
                    '-device', 'virtio-net-pci,netdev=net0',
                    '-vga', 'virtio',
                    '-vnc', ':0']
+        for item in parseCustomOptions(self.loadOption('CUSTOM_OPTIONS')):
+            command.append(item)
+
+        # TODO: Parse custom options
         if self.vmConfig["USE_KVM"] == 'TRUE':
             command.append('-enable-kvm')
         if self.vmConfig["USE_HOST_CPU"] == 'TRUE':
@@ -242,16 +305,14 @@ class ShowVmWindow(QtWidgets.QMainWindow):
             if code:
                 if not code in [0, -9]:
                     stderr = self.subprocess.stderr.read()
-                    msg = QtWidgets.QMessageBox()
-                    msg.setText("Failed to start VM, see details below:\n\n"
-                                f"Exit code: {code}\n"
-                                f"stderr output:\n{stderr}")
-                    time.sleep(0.1)
-                    if self.vncProcess and self.vncProcess.poll() == None:
-                        self.vncProcess.terminate()
-                    msg.setIcon(QtWidgets.QMessageBox.Critical)
-                    msg.setStyleSheet(f"background-color: {colors.bg}; color: white;")
-                    msg.exec_()
+                    print('\nFailed with error:\n' + stderr)
+                    QtCore.QMetaObject.invokeMethod(
+                        self.parent,
+                        "_show_error_message",
+                        QtCore.Qt.QueuedConnection,
+                        QtCore.Q_ARG(str, stderr),
+                        QtCore.Q_ARG(int, code)
+                    )
 
                 print(f"Process exited with code {code}")
                 self.stopButton.hide()
@@ -427,12 +488,52 @@ class VmSettingsWindow(QtWidgets.QMainWindow):
         self.vmUseHostCpuCheckbox.move(lineEditStart, 170)
         self.vmUseHostCpuCheckbox.setChecked(True if self.config['USE_HOST_CPU'] == 'TRUE' else False)
 
+        # Custom options widget
+        self.customOptionsWidget = QtWidgets.QWidget()
+        self.customOptionsHint = QtWidgets.QLabel(self.customOptionsWidget)
+        self.customOptionsHint.setText(translate['customQemuOptions'])
+        self.customOptionsHint.setFont(QFont(fontNames.standard, 14))
+        self.customOptionsHint.setStyleSheet("color: white;")
+        self.customOptionsHint.adjustSize()
+        self.customOptionsHint.move(hintStart, 20)
+
+        self.customOptionsInputbox = QtWidgets.QTextEdit(self.customOptionsWidget)
+        self.customOptionsInputbox.setText(self.loadOption('CUSTOM_OPTIONS'))
+        self.customOptionsInputbox.setFixedSize(500, 200)
+        self.customOptionsInputbox.move(hintStart, 50)
+        self.customOptionsInputbox.setStyleSheet("color: white;")
+
+        # Deleting block
+        self.deleteVmWidget = QtWidgets.QWidget()
+        self.deleteVmWarning = QtWidgets.QLabel(self.deleteVmWidget)
+        self.deleteVmWarning.setText(translate['deleteVmWarning'])
+        self.deleteVmWarning.setFont(QFont(fontNames.splash, 18))
+        self.deleteVmWarning.adjustSize()
+        self.deleteVmWarning.setStyleSheet("color: red;")
+
+        self.deleteVmText = QtWidgets.QTextEdit(self.deleteVmWidget)
+        self.deleteVmText.setReadOnly(True)
+        self.deleteVmText.setMarkdown(translate['deleteVmText'].replace('$FOLDER', self.vmPath))
+        self.deleteVmText.setFixedSize(self.deleteVmWidget.width(), 60)
+        self.deleteVmText.setStyleSheet('color: white;')
+        self.deleteVmText.move(0, 30)
+
+        self.deleteButton = QtWidgets.QPushButton(self)
+        self.deleteButton.setText(translate['confirm'])
+        self.deleteButton.setStyleSheet('color: white;')
+        self.deleteButton.adjustSize()
+        self.deleteButton.move(windowWidth - self.deleteButton.width() - 50, windowHeight - 50)
+        self.deleteButton.clicked.connect(self.deleteVm)
+        self.deleteButton.hide()
+
+        # Left menu
         self.leftMenu = QtWidgets.QListWidget(self)
         self.leftMenu.setFixedSize(180, windowHeight - self.titleBlock.height() - 20)
         self.leftMenu.move(10, self.titleBlock.height() + 10)
         self.leftMenu.setStyleSheet(f"background-color: {colors.block}; color: white;")
         self.leftMenu.addItems([
-            translate['vmName'], translate['storage'], translate['hardware']])
+            translate['vmName'], translate['storage'], translate['hardware'], translate['deleteVm'],
+            translate['customOptions']])
         self.leftMenu.currentRowChanged.connect(self.changeBlock)
 
         self.stackedWidget = QtWidgets.QStackedWidget(self)
@@ -442,6 +543,8 @@ class VmSettingsWindow(QtWidgets.QMainWindow):
         self.stackedWidget.addWidget(self.vmNameWidget)
         self.stackedWidget.addWidget(self.vmStorageWidget)
         self.stackedWidget.addWidget(self.vmHardwareWidget)
+        self.stackedWidget.addWidget(self.deleteVmWidget)
+        self.stackedWidget.addWidget(self.customOptionsWidget)
 
         self.saveButton = QtWidgets.QPushButton(self)
         self.saveButton.setText(translate['save'])
@@ -450,6 +553,12 @@ class VmSettingsWindow(QtWidgets.QMainWindow):
         self.saveButton.move(windowWidth - self.saveButton.width() - 50, windowHeight - 50)
         self.saveButton.clicked.connect(self.saveSettings)
 
+    def loadOption(self, key):
+        if key in self.config:
+            return self.config[key]
+        else:
+            return ''
+
     def openFileSelect(self, title):
         selecter = QtWidgets.QFileDialog()
         selecter.setStyleSheet("color: white;")
@@ -457,6 +566,22 @@ class VmSettingsWindow(QtWidgets.QMainWindow):
 
     def changeBlock(self, index):
         self.stackedWidget.setCurrentIndex(index)
+        if index == 3:
+            self.saveButton.hide()
+            self.deleteButton.show()
+        else:
+            self.saveButton.show()
+            self.deleteButton.hide()
+
+    def deleteVm(self):
+        msg = QtWidgets.QMessageBox()
+        msg.setText(translate['deleteVmConfirmation'])
+        msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+        code = msg.exec_()
+        if code == QtWidgets.QMessageBox.Yes:
+            self.close()
+            shutil.rmtree(self.vmPath)
+            self.parent.parent.updateVmList()
 
     def saveSettings(self):
         self.vmName = self.vmNameInputbox.text()
@@ -467,6 +592,7 @@ class VmSettingsWindow(QtWidgets.QMainWindow):
         self.vmUseKvm = 'TRUE' if self.vmUseKvmCheckbox.isChecked() else 'FALSE'
         self.vmUseQ35 = 'TRUE' if self.vmUseQ35Checkbox.isChecked() else 'FALSE'
         self.vmUseHostCpu = 'TRUE' if self.vmUseHostCpuCheckbox.isChecked() else 'FALSE'
+        self.customOptions = self.customOptionsInputbox.toPlainText()
         config = {
             'ARCH': 'x86_64',
             'NAME': self.vmName,
@@ -476,7 +602,8 @@ class VmSettingsWindow(QtWidgets.QMainWindow):
             'CPUS': self.vmCpus,
             'USE_KVM': self.vmUseKvm,
             'USE_Q35': self.vmUseQ35,
-            'USE_HOST_CPU': self.vmUseHostCpu
+            'USE_HOST_CPU': self.vmUseHostCpu,
+            'CUSTOM_OPTIONS': self.customOptions
         }
         raw = yaml.dump(config)
         print(self.vmPath)
@@ -667,7 +794,8 @@ class NewVmWindow(QtWidgets.QMainWindow):
                 'USE_KVM': 'TRUE',
                 'USE_Q35': 'TRUE',
                 'USE_HOST_CPU': 'TRUE',
-                'GRAPHICS': 'vnc'
+                'GRAPHICS': 'vnc',
+                'CUSTOM_OPTIONS': ''
             }
             raw = yaml.dump(config)
             file.write(raw)
@@ -689,6 +817,7 @@ class SettingsWindow(QtWidgets.QMainWindow):
         self.vncViewers = ['tigervnc', 'remmina']
         self.vncViewersPaths = ['/bin/vncviewer', '/bin/remmina']
         self.languages = ['Русский', 'English']
+
         screenSize = self.app.desktop().availableGeometry()
         windowWidth = 1000
         windowHeight = 500
@@ -786,6 +915,7 @@ class SettingsWindow(QtWidgets.QMainWindow):
     def changeBlock(self, index): pass
 
     def saveSettings(self):
+        oldLanguage = globalConfig['LANGUAGE']
         newConfig = {
             'VNCVIEWER': self.vncViewers[self.vncViewerCombobox.currentIndex()],
             'LANGUAGE': self.languages[self.languageCombobox.currentIndex()]
@@ -793,6 +923,13 @@ class SettingsWindow(QtWidgets.QMainWindow):
         with open(os.path.join(os.getenv('HOME'), 'NXVMs', 'config.yaml'), 'w') as file:
             file.write(yaml.dump(newConfig))
         self.parent.updateConfig()
+        if newConfig['LANGUAGE'] != oldLanguage:
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QtWidgets.QMessageBox.Warning)
+            msg.setWindowTitle('Restart NXVM')
+            msg.setStyleSheet(f"background-color: {colors.bg}; color: white;")
+            msg.setText(translate['restartAfterChangeLanguage'])
+            msg.exec_()
         self.close()
 
     def updateVncViewerStatus(self, index):
@@ -836,15 +973,6 @@ class Window(QtWidgets.QMainWindow):
         self.menuTitle.move(int((self.leftMenu.width() - self.menuTitle.width()) / 2), 10)
         self.menuTitle.setStyleSheet("color: white;")
 
-        # self.mainMenuButton = QtWidgets.QPushButton(self.leftMenu)
-        # self.mainMenuButton.setText("Main Menu")
-        # self.mainMenuButton.setFont(QFont(fontNames.standard, 12))
-        # self.mainMenuButton.setFixedSize(int(self.leftMenu.width() / 2), 50)
-        # self.mainMenuButton.move(int((self.leftMenu.width() - self.mainMenuButton.width()) / 2),
-        #                          self.leftMenu.height() - self.mainMenuButton.height() - 25)
-        # self.mainMenuButton.clicked.connect(self.setToMainMenu)
-        # self.mainMenuButton.setStyleSheet("color: white;")
-
         self.content = ContentWidget(self)
 
         self.showVm = ShowVmWindow(self.app, self)
@@ -853,6 +981,16 @@ class Window(QtWidgets.QMainWindow):
         self.showVm.content.hide()
         self.updateVmList()
         self.leftMenuList.setCurrentRow(0)
+
+    @QtCore.pyqtSlot(str, int)
+    def _show_error_message(self, stderr, code):
+        msg = QtWidgets.QMessageBox()
+        msg.setText("Failed to start VM, see details below:\n\n"
+                    f"Exit code: {code}\n"
+                    f"stderr output:\n{stderr}")
+        msg.setIcon(QtWidgets.QMessageBox.Critical)
+        msg.setStyleSheet(f"background-color: {colors.bg}; color: white;")
+        msg.exec_()
 
     def setToShowVm(self):
         self.content.content.hide()
@@ -893,12 +1031,6 @@ class Window(QtWidgets.QMainWindow):
             self.setToMainMenu()
             return
         self.setToShowVm()
-        # if index == len(self.vmsList):
-        #     self.showVm.setVmConfig(self.vmsList[index])
-        #     print(self.vmsList[index])
-        # else:
-        #     self.showVm.setVmConfig(self.vmsList[index - 1])
-        #     print(self.vmsList[index - 1])
         if len(self.vmsList) != 0:
             self.showVm.setVmConfig(self.vmsList[index - 1])
         else:

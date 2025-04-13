@@ -1,13 +1,13 @@
 #!/usr/bin/sh
 
 minfo () {
-  echo -e "\e[44mINFO \e[0m $1"
+  echo -e "[\e[34m*\e[0m] $1"
 }
 mdone () {
-  echo -e "\e[42mDONE \e[0m $1"
+  echo -e "[\e[32mV\e[0m] $1"
 }
 merror () {
-  echo -e "\e[41mERROR\e[0m $1"
+  echo -e "[\e[31mX\e[0m] $1"
 }
 
 minfo "Installing Python dependencies"

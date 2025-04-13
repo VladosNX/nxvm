@@ -1,10 +1,10 @@
 [NXVM Site is online!](https://vladosnx.github.io/nxvm)
 
-**WARNING** You're reading a README.md file for beta-version v0.2.2!
+**WARNING** You're reading a README.md file for beta-version v0.4.0!
 This version has a lot of bugs and program can be exited with errors for a many times.
 Please report bugs at [project page](https://github.com/vladosnx/nxvm).
 
-# NXVM v0.3.0
+# NXVM v0.4.0
 
 > *Just a VM manager for QEMU*
 

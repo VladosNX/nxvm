@@ -1,17 +1,24 @@
 # Changelog for NXVM Versions
 
-# NXVM v0.3.0
+# NXVM v0.4.0
+
+- Added custom options for QEMU
+- You can now delete virtual machine from NXVM interface
+- Message about QEMU is not installed
+- Fixed bug with message about QEMU crash
+
+## NXVM v0.3.0
 
 - Added Russian language - Привет мир!
 - Files are now binary, see [releases](https://github.com/VladosNX/nxvm/releases) (source code is still public)
 
-# NXVM v0.2.2
+## NXVM v0.2.2
 
 - Added message about missing VNC viewers
 - Little design update in settings
 - Bugfix (Fixed HDA/CDROM choosing)
 
-# NXVM v0.2.1
+## NXVM v0.2.1
 
 - Bugfix (Automatically creating main config file)
 
