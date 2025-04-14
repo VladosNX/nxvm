@@ -1,6 +1,6 @@
 #!/bin/xdg-open
 [Desktop Entry]
-Exec=/usr/bin/python3 /usr/bin/nxvm
+Exec=/usr/bin/nxvm-starter
 Terminal=false
 Type=Application
 Name=NXVM Beta

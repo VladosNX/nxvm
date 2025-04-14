@@ -28,9 +28,9 @@ if [[ "$?" != "0" ]]; then
 fi
 mdone "Cloned NXVM repo without errors"
 cd nxvm
-cp nxvm.py /usr/bin/nxvm.py
+cp nxvm-starter /usr/bin/nxvm-starter
 cp nxvm /usr/bin/nxvm
-chmod +x /usr/bin/nxvm.py
+chmod +x /usr/bin/nxvm-starter
 chmod +x /usr/bin/nxvm
 mdone "Copied nxvm binary to /usr/bin and made it executable"
 cp nxvm.desktop /usr/share/applications/nxvm.desktop
